@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Nerdflix</title>
+		<link rel="shortcut icon" href="img/favicon.ico">
+		<link rel="stylesheet" href="css/bootstrap.min.css">
+		<link rel="stylesheet" href="css/heroic-features.css">
+		<link rel="stylesheet" href="css/nerdflix.css">
+	</head>
+	<body>
+	    <h1><a class="" href="#"><img src="img/nerdflix.png" class="img-responsive" /></a></h1>
+	
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-12 text-center">
+					<small id="usuario"></small>
+					<h3>Ultimos Estrenos</h3>
+				</div>
+			</div>
+			<div class="row text-center" id="peliculas">
+
+				<div class="col-md-3 col-sm-4 pelicula hide">
+					<div class="thumbnail">
+						<img src="img/sin-foto.jpg" alt="">
+						<div class="caption">
+							<h4>TITULO</h4>
+							<p>ESTRENO</p>
+							<p><a href="#playMovie" class="btn btn-primary">Ver ahora</a></p>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+		<div class="container hide" id="playMovie">
+			<div class="row">
+				<div class="col-lg-12">
+					<h1 class="page-header" id="titulo">TITULO (1900)</h1>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-8">
+					<iframe width="750" height="400" src="img/sin-video.jpg" frameborder="0" allowfullscreen></iframe>
+					<h3>Descripcion:</h3>
+					<p id="descripcion">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorem nobis praesentium eum voluptate temporibus, obcaecati quod aspernatur eius modi recusandae, sequi quae. Provident illo eligendi sequi repellat harum, rerum, animi!</p>
+				</div>
+				<div class="col-md-4">
+					<img id="imagen" class="img-responsive" src="img/sin-foto.jpg" alt="">
+				</div>
+			</div>
+		</div>
+		<script src="https://apis.google.com/js/api:client.js"></script>
+		<script src="js/pelicula.class.js"></script>
+		<script>
+			//** Conectar Nerdflix con la API de Google **//
+			gapi.load("auth2", ()=>{ //<-- Cuando se cargue la libreria Auth2...
+				window.auth2 =  gapi.auth2.init({ //<--- ... conectarse a la APÎ de Google
+					client_id : "37964637854-unsumjdaur4u9kp6mu96m3aajrj6ilod.apps.googleusercontent.com",
+					cookiepolicy : "single_host_origin"
+				});
+			});
+
+			//////////////////////////////////////////////////
+			let promesa = new Promise((rta, error) => { //<--- Instanciar el objeto Promesa
+				////**  INICIO PROMESA **////
+				//Storage: Almacenamiento del lado del cliente
+				//Tipo: Local Storage y Session Storage
+				if( !localStorage.getItem("_PELICULAS") ){
+					//Si no existe el localStorage, conectarse a la API
+					let peticion = new XMLHttpRequest();
+					peticion.open("GET", "http://localhost/nerdflix/api/");
+					peticion.onload = function(){
+						if( this.status == 200 ){
+							console.log("localStorage guardado!");
+							window.localStorage.setItem("_FECHA", Date.now() );
+							window.localStorage.setItem("_PELICULAS", this.response);
+
+							rta( this.response );
+						} else {
+							error("API no disponible");
+						}
+					};
+					peticion.send();
+				} else {
+					//Si existe el localStorage, usarlo
+					console.log("localStorage cargado!");
+					rta( localStorage.getItem("_PELICULAS") );
+				}
+				////**  FIN DE PROMESA **////
+			});
+
+			promesa.then((json) => { //<-- El parametro es lo que envia el "resolve()" desde la Promise
+				let objetos = JSON.parse(json);
+				let listado = Pelicula.parse(objetos);
+
+				listado.forEach(item => {
+
+					item.Mostrar("#peliculas");
+
+				});
+
+			}); //<--- Que hacer si sale bien
+
+			promesa.catch((msg) => { //<-- El parametro es lo que envia el "reject()" desde la Promise
+				console.error(msg);
+			}); //<--- Que hacer si sale mal
+
+
+
+
+			
+
+
+		</script>
+	</body>
+</html>
