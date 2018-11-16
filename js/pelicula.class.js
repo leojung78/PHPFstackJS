@@ -1,6 +1,10 @@
-class Pelicula {
+//porque conviene programar en objetos?
+//estandarizar la informacion, por ejemplo los metodos en los objetos
 
-	constructor(id, t, d, e, p, tr){
+
+class Pelicula {
+	
+	constructor(id, t, d, e, p, tr){ //o idPelicula, Titulo, Descripcion, Estreno, Poster, Trailer
 		this.idPelicula = id;
 		this.Titulo = t;
 		this.Descripcion = d;
@@ -8,32 +12,36 @@ class Pelicula {
 		this.Poster = p;
 		this.Trailer = tr;
 	}
+
 	Mostrar(area){
-		//Guardar una referencia al objeto "Pelicula" mediante una variable auxiliar
+		// GUARDAR UNA REFERENCIA AL OBJETO "Pelicula" MEDIANTE UNA VARIABLE AUXILIAR
 		let self = this;
 
 		//console.log(`Hola, soy ${this.Titulo} (${this.Estreno})`);
-		let ficha = document.querySelector(".pelicula").cloneNode(true);
+		//querySelector captura siempre al primer objeto ("bla bla").
+		let ficha = document.querySelector(".pelicula").cloneNode(true); //cloneNode(); es un metodo de instancia (clona el objeto), pero solo el elemento vacio, para todo el contenido es clonNode(true)
 
-		//Manipulaciones del DOM (indirecta)
-		ficha.querySelector("h4").innerText = self.Titulo; //<-- Manipulacion de Contenido
-		ficha.querySelector("p").innerText = self.Estreno; //<-- Manipulacion de Contenido
+		//MANIPULACION DEL DOM (indirecta) porque guarde en una variable
+		ficha.querySelector("h4").innerText = self.Titulo; //MANIPULACION DE CONTENIDO
+		ficha.querySelector("p").innerText = self.Estreno; //MANIPULACION DE CONTENIDO
+		
+		ficha.querySelector("img").src = self.Poster; //MANIPULACION DE ESTRUCTURA
 
-		ficha.querySelector("img").src = self.Poster; //<-- Manipulacion de Estructura
+		//FUNCTION ADENTRO DE OTRA FUNCTION  SE LO LLAMA "closure"
+		ficha.querySelector("a").onclick = function (e){ //MANIPULACION DE COMPORTAMIENTO
 
-		//Function adentro de otra Function ---> "closure"
-		ficha.querySelector("a").onclick = function(e){ //<-- Manipulacion de Comportamiento
 			e.preventDefault();
 
-			let reproducir = new Promise((resolve, reject) => {
-				//1) ↓ Chequear si esta logeado
-				if( auth2.currentUser.get().isSignedIn() ){
-
+			let reproducir = new Promise((resolve, reject)=>{
+				//1) Chequear si esta logueado
+				if (auth2.currentUser.get().isSignedIn()) {
+					
 					let usuario = auth2.currentUser.get().getBasicProfile();
 					resolve(usuario);
-				} else { //2) ↓ Si no esta logueado, mostrar el Popup de logeo...
+				} else { //2) sino esta logueado mostrat el popup de logueo"
+					
 					auth2.signIn().then(()=>{
-
+						//alert(`Vos queres ver esta pelicula: ${self.Titulo}`); //ACA EL this. ES function() del onclick.
 						let usuario = auth2.currentUser.get().getBasicProfile();
 						resolve(usuario);
 
@@ -42,61 +50,70 @@ class Pelicula {
 			});
 
 			reproducir.then((usuario)=>{
-				document.querySelector("#usuario").innerHTML = 'Bienvenido <strong>' + usuario.getGivenName() + '</strong>';
-				console.log( );
-
-				let reproductor = document.querySelector("#playMovie");
+				
+				document.querySelector("#usuario").innerHTML = "Bienvenido <strong>" + usuario.getGivenName() + "</strong>";
+				
+				//console.log("Vos sos: " + usuario.getGivenName());
+				
+				let reproductor = document.querySelector("#playMovie"); 
 
 				reproductor.querySelector("#titulo").innerText = `${self.Titulo} (${self.Estreno})`;
-				reproductor.querySelector("iframe").src = self.Trailer;
+				reproductor.querySelector("iframe").src = self.Trailer; //MANIPULACION DE ESTRUCTURA
 				reproductor.querySelector("#descripcion").innerText = self.Descripcion;
-				reproductor.querySelector("#imagen").src = self.Poster;
+				reproductor.querySelector("#imagen").src = self.Poster; //MANIPULACION DE ESTRUCTURA
 
-				reproductor.classList.remove("hide");
+				reproductor.classList.remove("hide"); //MANIPULACION DE ESTRUCTURA
 
-				window.scroll({ top : reproductor.offsetTop, behavior : "smooth" });
+				window.scroll({top: reproductor.offsetTop, behavior: "smooth"}); //reproductor.offsetTop obtiene lacantidad de pixels hasta
 			});
 
 
 		}
 
-		ficha.classList.remove("hide"); //<-- Manipulacion de Estructura
+		ficha.classList.remove("hide"); //MANIPULACION DE ESTRUCTURA
 
-		//Anexar la ficha clonada al documento... (Manipulacion Directa)
+		//ANEXAR LA FICHA CLONA AL DOCUMENTO (manipulacion directa) porque lo hace directo, no se guardo en una variable
 		document.querySelector(area).appendChild(ficha);
 
+		//console.log(ficha);
 	}
-	static parse(json){
 
-		if( json instanceof Array ){
+	static parse(json){
+		//console.log("Vos queres convertir estas peliculas");
+		//console.log(json);
+		
+		if (json instanceof Array) {
 
 			let peliculas = new Array();
 
-			json.forEach(function(item){
+			json.forEach (function(item) {
 
 				peliculas.push(
 					new Pelicula(
-						item.idPelicula,
-						item.Titulo,
-						item.Descripcion,
-						item.Estreno,
-						item.Poster,
-						item.Trailer)
+					item.idPelicula,
+					item.Titulo,
+					item.Descripcion,
+					item.Estreno,
+					item.Poster,
+					item.Trailer)
 				);
 
 			});
 
 			return peliculas;
 
-		} else if( json instanceof Object ){
-			
+		} else if (json instanceof Object) {
+
 			return new Pelicula(json.idPelicula, json.Titulo, json.Descripcion, json.Estreno, json.Poster, json.Trailer);
 
-		} else if( json instanceof Pelicula ){
+		} else if (json instanceof Pelicula) { //la clase "Pelicula"
+			
 			console.error("ERROR: el objeto ya es una Pelicula");
+		
 		} else {
+		
 			console.error("ERROR: el parametro no puede ser convertido a Pelicula");
+		
 		}
 	}
-
 }

@@ -11,8 +11,9 @@
 		<link rel="stylesheet" href="css/nerdflix.css">
 	</head>
 	<body>
-	    <h1><a class="" href="#"><img src="img/nerdflix.png" class="img-responsive" /></a></h1>
-	
+	    <!--<h1><a class="" href="#"><img src="img/nerdflix.png" class="img-responsive" /></a></h1>-->
+		<h1><a class="" href="https://docs.google.com/uc?id=1KnQjC9oQIADdrC82oJEEaTwdhGzu6gsY" target="_blank"><img src="https://docs.google.com/uc?id=1pzujgVqJjnec-3ZUdeS2JwQsGhx3M53x" class="img-responsive" /></a></h1>	
+
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-12 text-center">
@@ -32,9 +33,10 @@
 						</div>
 					</div>
 				</div>
-
+			
 			</div>
 		</div>
+
 		<div class="container hide" id="playMovie">
 			<div class="row">
 				<div class="col-lg-12">
@@ -55,65 +57,89 @@
 		<script src="https://apis.google.com/js/api:client.js"></script>
 		<script src="js/pelicula.class.js"></script>
 		<script>
-			//** Conectar Nerdflix con la API de Google **//
-			gapi.load("auth2", ()=>{ //<-- Cuando se cargue la libreria Auth2...
-				window.auth2 =  gapi.auth2.init({ //<--- ... conectarse a la APÎ de Google
-					client_id : "37964637854-unsumjdaur4u9kp6mu96m3aajrj6ilod.apps.googleusercontent.com",
-					cookiepolicy : "single_host_origin"
+			// Conectar Nerdflic con la API de Google
+			gapi.load("auth2", () => { // cuando se cargue la libreria auth2...
+				window.auth2 = gapi.auth2.init({ //conectarse a la api de google
+					client_id: "537842474376-oo2il4vmfim3tnvr7pdrr09515ro0885.apps.googleusercontent.com",
+					cookiepolicy: "single_host_origin"
 				});
 			});
 
-			//////////////////////////////////////////////////
-			let promesa = new Promise((rta, error) => { //<--- Instanciar el objeto Promesa
-				////**  INICIO PROMESA **////
-				//Storage: Almacenamiento del lado del cliente
-				//Tipo: Local Storage y Session Storage
-				if( !localStorage.getItem("_PELICULAS") ){
-					//Si no existe el localStorage, conectarse a la API
-					let peticion = new XMLHttpRequest();
-					peticion.open("GET", "http://localhost/nerdflix/api/");
-					peticion.onload = function(){
-						if( this.status == 200 ){
-							console.log("localStorage guardado!");
-							window.localStorage.setItem("_FECHA", Date.now() );
-							window.localStorage.setItem("_PELICULAS", this.response);
 
-							rta( this.response );
+
+			///////////////////////////////////////////////////////////////////////
+			//como se usan las promesas de js (promise)
+			let promesa = new Promise((respuesta, error) => { // --- instanciar el objeto Promise (promesa) tiene 2 parametros --- new Promise((respuesta, error ) => { 
+				///// INICIO PROMESA /////
+				//Storage: Almacenamiento del lado del cliente
+				//Tipos: Local Storage y Session Storage
+				if (!localStorage.getItem("_PELICULAS")) {
+					//Si no existe el loclaStorage, conectarse a la API
+					let peticion = new XMLHttpRequest();
+					//peticion.open("GET", "http://localhost/nerdflix/api/");
+					peticion.open("GET", "https://spreadsheets.google.com/feeds/list/1Ublk3yFxEg4b1ztAfkzWa3bftuC69I03MdKeIIwWTV8/1/public/values?alt=json");
+					peticion.onload = function(){
+						if (this.status == 200) {
+
+							let google = JSON.parse(this.response);
+
+							let datos = new Array;
+
+							google.feed.entry.forEach((item) => {
+
+								datos.push({
+
+									idPelicula 	: item.gsx$idpelicula.$t,
+									Titulo 		: item.gsx$titulo.$t,
+									Descripcion : item.gsx$descripcion.$t,
+									Estreno 	: item.gsx$estreno.$t,
+									Poster 		: item.gsx$poster.$t,
+									Trailer 	: item.gsx$trailer.$t
+								});
+
+							});
+
+							datos = JSON.stringify(datos);
+
+							console.log("localStorage guardado!");
+							window.localStorage.setItem("_FECHA", Date.now());
+							window.localStorage.setItem("_PELICULAS", datos);
+
+							respuesta(datos); // ---- esto va a then();
 						} else {
-							error("API no disponible");
+							error("API no disponible!"); // --- esto va al catch();
 						}
-					};
+					};			
 					peticion.send();
 				} else {
-					//Si existe el localStorage, usarlo
-					console.log("localStorage cargado!");
-					rta( localStorage.getItem("_PELICULAS") );
+					//Si existe el loclaStorage, usarlo
+					//console.log("localStorage cargado!");
+					respuesta(localStorage.getItem("_PELICULAS")); // ---- esto va a then();
 				}
-				////**  FIN DE PROMESA **////
-			});
+				/////  FIN PROMESA  /////
+			}); 
 
-			promesa.then((json) => { //<-- El parametro es lo que envia el "resolve()" desde la Promise
+			//ESTO ES LO QUE SE VA HACER CUENDO LA PETICION TERMINE
+			promesa.then((json) => { // (json) es --- respuesta(this.response);  o  respuesta(localStorage.getItem("_PELICULAS"));
+
 				let objetos = JSON.parse(json);
 				let listado = Pelicula.parse(objetos);
 
+				//console.log("Listado parseado");
+				//console.log(listado);
 				listado.forEach(item => {
-
+					//console.log(item);
+					//item.Mostrar();
 					item.Mostrar("#peliculas");
-
 				});
 
-			}); //<--- Que hacer si sale bien
+			}); // --- que hacer si sale bien
 
-			promesa.catch((msg) => { //<-- El parametro es lo que envia el "reject()" desde la Promise
-				console.error(msg);
-			}); //<--- Que hacer si sale mal
-
-
-
+			promesa.catch((mensaje) => { // (mensaje) es --- error("API no disponible!");
+				console.error(mensaje);
+			}); // --- que hacer si sale mal
 
 			
-
-
 		</script>
 	</body>
 </html>
